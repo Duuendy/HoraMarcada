@@ -1,10 +1,20 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
+
+	resp "github.com/Duuendy/HoraMarcada/backend/internal/http/response"
 )
-// Handler responde ao endpoint /health
+
 func Handler(h http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(h, "Hello Word!!!")
+	if r.URL.Query().Get("fail") == "true" {
+		resp.ResponseError(h, http.StatusServiceUnavailable, &resp.APIError{
+			Code:    http.StatusServiceUnavailable,
+			Message: "Service Low",
+		})
+		return
+	}
+	resp.ResponseSuccess(h, map[string]string{
+		"status": "OK",
+	})
 }
