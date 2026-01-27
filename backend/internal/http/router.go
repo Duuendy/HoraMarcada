@@ -8,6 +8,6 @@ import (
 func Router() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", Handler)
-	mux.HandleFunc("/service", CreateServiceHandler)
+	mux.HandleFunc("/services", CreateServiceHandler)
 	return mux
 }

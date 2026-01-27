@@ -5,14 +5,9 @@ import (
 	"net/http"
 	"strings"
 
+	dto "github.com/Duuendy/HoraMarcada/backend/internal/http/dto/service"
 	resp "github.com/Duuendy/HoraMarcada/backend/internal/http/response"
 )
-type CreateServiceRequest struct {
-	Name		 	string	`json:"name"`
-	PriceCent		int		`json:"price_cent"`
-	TimeMinutes    	int		`json:"time_minutes"` // in minutes
-	IsMaintenance	bool	`json:"is_maintenance"`
-}
 
 func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
@@ -23,7 +18,7 @@ func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	req := CreateServiceRequest{
+	req := dto.CreateServiceRequest{
 	}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {		
@@ -48,7 +43,12 @@ func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	resp.ResponseSuccess(h, map[string]string{
-		"message": "Service created successfully",
-	})	
+	responseService := dto.CreateServiceResponse{	
+		Id: 1,
+		Name: name,
+		PriceCent: req.PriceCent,
+		TimeMinutes: req.TimeMinutes,
+		IsMaintenance: req.IsMaintenance,
+	}
+	resp.ResponseSuccess(h, responseService)
 }
