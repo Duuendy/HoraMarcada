@@ -60,3 +60,31 @@ func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
 	resp.ResponseSuccess(h, responseService)	
 	
 }
+
+func ListServicesHandler(h http.ResponseWriter, r *http.Request){
+	if r.Method != http.MethodGet{
+		resp.ResponseError(h, http.StatusMethodNotAllowed, &resp.APIError{
+			Code: http.StatusMethodNotAllowed,
+			Message: "Method not allowed",
+		})
+		return
+	}
+	servItens := service.ListServices()
+
+	items := make([]dto.ServiceItem, 0, len(servItens))
+	for _, s := range servItens{
+		items = append(items, dto.ServiceItem{
+			Id: 			s.ID, 
+			Name: 			s.Name,
+			PriceCent: 		s.PriceCent,
+			TimeMinutes: 	s.TimeMinutes,
+			IsMaintenance: 	s.IsMaintenance,
+		})
+	}
+
+	response := dto.DTOListServiceResponse{
+		Items: items,
+	}
+
+	resp.ResponseSuccess(h, response)
+}

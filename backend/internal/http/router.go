@@ -9,5 +9,6 @@ func Router() *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", Handler)
 	mux.HandleFunc("/services", CreateServiceHandler)
+	mux.HandleFunc("/services/list", ListServicesHandler)
 	return mux
 }
