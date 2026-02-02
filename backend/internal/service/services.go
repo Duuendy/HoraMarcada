@@ -25,3 +25,14 @@ func ListServices() []ServiceModel {
 	}
 	return services
 }
+
+func GetServiceByeID(id int) (ServiceModel, bool) {
+	services := ListServices()
+	for _, s := range services {
+		if s.ID == id{
+			return s, true
+		}
+	}
+
+	return ServiceModel{}, false
+}
