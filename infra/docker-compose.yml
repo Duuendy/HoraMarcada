@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: hora_marcada_db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: hora_marcada
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - hora_marcada_pgdata:/var/lib/postgresql/data
+
+volumes:
+  hora_marcada_pgdata:

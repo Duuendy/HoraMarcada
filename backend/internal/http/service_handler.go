@@ -102,8 +102,8 @@ func GetServiceHandler(h http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	serviceModel, servFind := service.GetServiceByeID(id)
-	if servFind == false {
+	serviceModel, servFind := service.GetServiceByID(id)
+	if !servFind {
 		resp.ResponseError(h, http.StatusNotFound, &resp.APIError{
 			Code:    http.StatusNotFound,
 			Message: "Service not found",
