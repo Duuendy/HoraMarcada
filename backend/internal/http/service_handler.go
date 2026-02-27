@@ -62,8 +62,8 @@ func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
 	resp.ResponseSuccess(h, responseService)		
 }
 
-func ListServicesHandler(h http.ResponseWriter, r *http.Request){
-	if r.Method != http.MethodGet{
+func ListServicesHandler(h http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodGet{
 		resp.ResponseError(h, http.StatusMethodNotAllowed, &resp.APIError{
 			Code: http.StatusMethodNotAllowed,
 			Message: "Method not allowed",
@@ -82,6 +82,8 @@ func ListServicesHandler(h http.ResponseWriter, r *http.Request){
 	}
 
 	resp.ResponseSuccess(h, response)
+
+
 }
 
 func GetServiceHandler(h http.ResponseWriter, r *http.Request){
