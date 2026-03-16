@@ -14,6 +14,7 @@ services:
 
     volumes:
       - hora_marcada_pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
 
 volumes:
   hora_marcada_pgdata:

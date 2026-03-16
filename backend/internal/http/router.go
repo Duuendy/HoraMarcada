@@ -10,11 +10,11 @@ func Router(db *sql.DB) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", Handler)
 	mux.HandleFunc("/services", CreateServiceHandler)
-	mux.HandleFunc("/services/list", ListServicesHandler)
-	// mux.HandleFunc("/services/list", func(w http.ResponseWriter, r *http.Request) {
-	// 	ListServicesHandler(w,r,db)
-	// })
-	mux.HandleFunc("/services/", GetServiceHandler)
+	// Instanciamos o handler passando o banco
+    serviceHandler := &ServiceHandler{DB: db}
 
-	return mux
+    // Registramos o método diretamente
+    mux.HandleFunc("/services/list", serviceHandler.List)
+	return mux	
 }
+	// mux.HandleFunc("/services/", GetServiceHandler)

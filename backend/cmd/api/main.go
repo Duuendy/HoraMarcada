@@ -28,6 +28,26 @@ func main() {
 		panic(err)
 	}
 
+	defer db.Close()
+
+	var dbName string
+	if err := db.QueryRow("select current_database()").Scan(&dbName); err != nil {
+		panic(err)
+	}
+	fmt.Println("DB atual:", dbName)
+
+	var schema string
+	if err := db.QueryRow("select current_schema()").Scan(&schema); err != nil {
+		panic(err)
+	}
+	fmt.Println("Schema atual:", schema)
+
+	var addr string
+	if err := db.QueryRow("select inet_server_addr()::text || ':' || inet_server_port()::text").Scan(&addr); err != nil {
+		panic(err)
+	}
+	fmt.Println("Servidor Postgres:", addr)
+
 	fmt.Printf("PING\n")
 
 	mux := apphttp.Router(db)
@@ -48,6 +68,4 @@ func main() {
 		// se o servidor falhar, você também encerra
 		fmt.Printf("PONG - Servidor caiu: %v\n", err)
 	}
-
-	defer db.Close()
 }

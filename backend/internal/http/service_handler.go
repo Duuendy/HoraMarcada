@@ -1,30 +1,32 @@
 package http
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"strings"
 
 	dto "github.com/Duuendy/HoraMarcada/backend/internal/http/dto/service"
-	"github.com/Duuendy/HoraMarcada/backend/internal/http/mapper"
 	resp "github.com/Duuendy/HoraMarcada/backend/internal/http/response"
 	service "github.com/Duuendy/HoraMarcada/backend/internal/service"
 )
 
+type ServiceHandler struct {
+	DB *sql.DB
+}
+
 func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	if r.Method != http.MethodPost{
+	if r.Method != http.MethodPost {
 		resp.ResponseError(h, http.StatusMethodNotAllowed, &resp.APIError{
 			Code:    http.StatusMethodNotAllowed,
 			Message: "Method not allowed",
 		})
 		return
 	}
-	req := dto.DTOCreateServiceRequest{
-	}
+	req := dto.DTOCreateServiceRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {		
+	if err != nil {
 		resp.ResponseError(h, http.StatusBadRequest, &resp.APIError{
 			Code:    http.StatusBadRequest,
 			Message: "Invalid request payload",
@@ -32,7 +34,7 @@ func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name := strings.TrimSpace(req.Name)
-	if name == ""  {
+	if name == "" {
 		resp.ResponseError(h, http.StatusBadRequest, &resp.APIError{
 			Code:    http.StatusBadRequest,
 			Message: "Name is required",
@@ -47,72 +49,68 @@ func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := service.CreateService(
-		req.Name, 
-		req.PriceCent, 
+		req.Name,
+		req.PriceCent,
 		req.TimeMinutes,
 		req.IsMaintenance,
 	)
 	responseService := dto.DTOCreateServiceResponse{
-		Id: id,
-		Name: req.Name,
-		PriceCent: req.PriceCent,
-		TimeMinutes: req.TimeMinutes,
+		Id:            id,
+		Name:          req.Name,
+		PriceCent:     req.PriceCent,
+		TimeMinutes:   req.TimeMinutes,
 		IsMaintenance: req.IsMaintenance,
 	}
-	resp.ResponseSuccess(h, responseService)		
+	resp.ResponseSuccess(h, responseService)
 }
 
-func ListServicesHandler(h http.ResponseWriter, r *http.Request) {
-			if r.Method != http.MethodGet{
+func (sh *ServiceHandler) List(h http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
 		resp.ResponseError(h, http.StatusMethodNotAllowed, &resp.APIError{
-			Code: http.StatusMethodNotAllowed,
+			Code:    http.StatusMethodNotAllowed,
 			Message: "Method not allowed",
 		})
 		return
 	}
-	servItens := service.ListServices()
 
-	items := make([]dto.ServiceItem, 0, len(servItens))
-	for _, s := range servItens{
-		items = append(items, mapper.ToServiceItem(s))
+	servItens, err := service.ListServices(sh.DB)
+	if err != nil {
+		resp.ResponseError(h, http.StatusInternalServerError, &resp.APIError{
+			Code:    http.StatusInternalServerError,
+			Message: "Database error!!",
+		})
+		return
 	}
-
-	response := dto.DTOListServiceResponse{
-		Items: items,
-	}
-
-	resp.ResponseSuccess(h, response)
-
-
+	resp.ResponseSuccess(h, servItens)
 }
 
-func GetServiceHandler(h http.ResponseWriter, r *http.Request){
-	if r.Method != http.MethodGet{
-		resp.ResponseError(h, http.StatusMethodNotAllowed, &resp.APIError{
-			Code: http.StatusMethodNotAllowed,
-			Message: "Method not allowes",
-		})
-		return
-	}
-	path := strings.TrimPrefix(r.URL.Path, "/services/")
-	id, err := strconv.Atoi(path)
-	if err != nil {		
-		resp.ResponseError(h, http.StatusBadRequest, &resp.APIError{
-			Code:    http.StatusBadRequest,
-			Message: "Invalid request payload",
-		})
-		return
-	}
+// func GetServiceHandler(h http.ResponseWriter, r *http.Request) {
+// 	if r.Method != http.MethodGet {
+// 		resp.ResponseError(h, http.StatusMethodNotAllowed, &resp.APIError{
+// 			Code:    http.StatusMethodNotAllowed,
+// 			Message: "Method not allowes",
+// 		})
+// 		return
+// 	}
+// 	path := strings.TrimPrefix(r.URL.Path, "/services/")
+// 	id, err := strconv.Atoi(path)
+// 	if err != nil {
+// 		resp.ResponseError(h, http.StatusBadRequest, &resp.APIError{
+// 			Code:    http.StatusBadRequest,
+// 			Message: "Invalid request payload",
+// 		})
+// 		return
+// 	}
 
-	serviceModel, servFind := service.GetServiceByID(id)
-	if !servFind {
-		resp.ResponseError(h, http.StatusNotFound, &resp.APIError{
-			Code:    http.StatusNotFound,
-			Message: "Service not found",
-		})
-		return
-	}
+// 	serviceModel, servFind := service.GetServiceByID(id)
+// 	if !servFind {
+// 		resp.ResponseError(h, http.StatusNotFound, &resp.APIError{
+// 			Code:    http.StatusNotFound,
+// 			Message: "Service not found",
+// 		})
+// 		return
+// 	}
 
-	response := mapper.ToServiceItem(serviceModel)
-	resp.ResponseSuccess(h, response)
-}
+// 	response := mapper.ToServiceItem(serviceModel)
+// 	resp.ResponseSuccess(h, response)
+// }
