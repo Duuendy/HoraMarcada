@@ -1,4 +1,4 @@
-package service
+package dtoservice
 
 type DTOCreateServiceResponse struct {
 	Id            int    `json:"id"`

@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
-	dbConfig "github.com/Duuendy/HoraMarcada/backend/db"
+	database "github.com/Duuendy/HoraMarcada/backend/internal/database"
+	dbConfig "github.com/Duuendy/HoraMarcada/backend/internal/database"
 	apphttp "github.com/Duuendy/HoraMarcada/backend/internal/http"
 
 	_ "github.com/lib/pq"
@@ -30,35 +32,28 @@ func main() {
 
 	defer db.Close()
 
-	var dbName string
-	if err := db.QueryRow("select current_database()").Scan(&dbName); err != nil {
-		panic(err)
-	}
-	fmt.Println("DB atual:", dbName)
-
-	var schema string
-	if err := db.QueryRow("select current_schema()").Scan(&schema); err != nil {
-		panic(err)
-	}
-	fmt.Println("Schema atual:", schema)
-
-	var addr string
-	if err := db.QueryRow("select inet_server_addr()::text || ':' || inet_server_port()::text").Scan(&addr); err != nil {
-		panic(err)
-	}
-	fmt.Println("Servidor Postgres:", addr)
-
 	fmt.Printf("PING\n")
 
-	mux := apphttp.Router(db)
+	repo := &database.ServiceRepo{DB: db}
+
+	mux := apphttp.Router(repo)
+
+	addr := ":8080"
+	if p := strings.TrimSpace(os.Getenv("PORT")); p != "" {
+		if strings.HasPrefix(p, ":") {
+			addr = p
+		} else {
+			addr = ":" + p
+		}
+	}
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	serveErr := make(chan error, 10)
 	go func() {
-		fmt.Printf("Starting server on :8080\n")
-		serveErr <- http.ListenAndServe(":8080", mux)
+		fmt.Printf("Starting server on %s (set PORT to avoid clashing with another service on 8080)\n", addr)
+		serveErr <- http.ListenAndServe(addr, mux)
 	}()
 
 	select {

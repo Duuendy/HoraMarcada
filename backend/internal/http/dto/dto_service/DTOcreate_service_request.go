@@ -1,4 +1,4 @@
-package service
+package dtoservice
 
 type DTOCreateServiceRequest struct {
 	Name		 	string	`json:"name"`

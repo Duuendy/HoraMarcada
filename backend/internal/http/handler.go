@@ -1,26 +1,27 @@
 package http
 
 import (
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strings"
 
-	dto "github.com/Duuendy/HoraMarcada/backend/internal/http/dto/service"
+	database "github.com/Duuendy/HoraMarcada/backend/internal/database"
+	"github.com/Duuendy/HoraMarcada/backend/internal/domain"
+	dto "github.com/Duuendy/HoraMarcada/backend/internal/http/dto/dto_service"
+	"github.com/Duuendy/HoraMarcada/backend/internal/http/mapper"
 	resp "github.com/Duuendy/HoraMarcada/backend/internal/http/response"
-	service "github.com/Duuendy/HoraMarcada/backend/internal/service"
 )
 
 type ServiceHandler struct {
-	DB *sql.DB
+	Repository database.ServiceRepository
 }
 
-func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
+func (sh *ServiceHandler) Create(h http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	if r.Method != http.MethodPost {
 		resp.ResponseError(h, http.StatusMethodNotAllowed, &resp.APIError{
 			Code:    http.StatusMethodNotAllowed,
-			Message: "Method not allowed",
+			Message: "Use POST with JSON body (opening this URL in the browser sends GET only)",
 		})
 		return
 	}
@@ -48,12 +49,19 @@ func CreateServiceHandler(h http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	id := service.CreateService(
-		req.Name,
-		req.PriceCent,
-		req.TimeMinutes,
-		req.IsMaintenance,
-	)
+	id, err := sh.Repository.Create(domain.ServiceModel{
+		Name:          req.Name,
+		PriceCent:     req.PriceCent,
+		TimeMinutes:   req.TimeMinutes,
+		IsMaintenance: req.IsMaintenance,
+	})
+	if err != nil {
+		resp.ResponseError(h, http.StatusInternalServerError, &resp.APIError{
+			Code:    http.StatusInternalServerError,
+			Message: "Erro ao gravar serviço",
+		})
+		return
+	}
 	responseService := dto.DTOCreateServiceResponse{
 		Id:            id,
 		Name:          req.Name,
@@ -73,15 +81,20 @@ func (sh *ServiceHandler) List(h http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	servItens, err := service.ListServices(sh.DB)
+	servItens, err := sh.Repository.List()
+
 	if err != nil {
 		resp.ResponseError(h, http.StatusInternalServerError, &resp.APIError{
 			Code:    http.StatusInternalServerError,
-			Message: "Database error!!",
+			Message: "Erro ao buscar dados no banco",
 		})
 		return
 	}
-	resp.ResponseSuccess(h, servItens)
+	items := make([]dto.ServiceItem, 0, len(servItens))
+	for _, s := range servItens {
+		items = append(items, mapper.ToServiceItem(s))
+	}
+	resp.ResponseSuccess(h, dto.DTOListServiceResponse{Items: items})
 }
 
 // func GetServiceHandler(h http.ResponseWriter, r *http.Request) {

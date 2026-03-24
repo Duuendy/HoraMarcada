@@ -1,4 +1,4 @@
-package service
+package dtoservice
 
 type ServiceItem struct {
 	Id            int    `json:"id"`

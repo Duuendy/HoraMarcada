@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"fmt"
@@ -18,4 +18,3 @@ var DataSourceName = fmt.Sprintf(
 	Password,
 	DbName,
 )
-	

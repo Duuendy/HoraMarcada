@@ -1,20 +1,21 @@
 package http
 
 import (
-	"database/sql"
 	"net/http"
+
+	"github.com/Duuendy/HoraMarcada/backend/internal/database"
 )
 
 // Router cria e retorna o roteador da aplicação
-func Router(db *sql.DB) *http.ServeMux {
+func Router(repo database.ServiceRepository) *http.ServeMux {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", Handler)
-	mux.HandleFunc("/services", CreateServiceHandler)
 	// Instanciamos o handler passando o banco
-    serviceHandler := &ServiceHandler{DB: db}
-
-    // Registramos o método diretamente
-    mux.HandleFunc("/services/list", serviceHandler.List)
-	return mux	
+	serviceHandler := &ServiceHandler{Repository: repo}
+	// Registramos o método diretamente
+	mux.HandleFunc("/services/list", serviceHandler.List)
+	mux.HandleFunc("/services/create", serviceHandler.Create)
+	return mux
 }
-	// mux.HandleFunc("/services/", GetServiceHandler)
+
+// mux.HandleFunc("/services/", GetServiceHandler)
